@@ -84,7 +84,7 @@ Kimi Web shows a dialog that replaces the input box; multiple questions become t
 
 ### Grok Build TUI — `ask_user_question`
 
-No `header`. Options have `label`, `description`, optional `preview`. `multi_select` on the question. Other is automatic.
+No `header`. Options have `label`, `description`, optional `preview`. `multi_select` on the question. Other is automatic. Put `(Recommended)` on the first option's **label**.
 
 ```json
 {

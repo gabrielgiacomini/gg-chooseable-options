@@ -74,10 +74,6 @@ Default user-facing output:
 
 1. Recommended option first.
 2. Flat bullets in chat, always:
-   `- \`ACTION_NAME_IN_SCREAMING_SNAKE_CASE\` (Recommended): Description → owning skill`
-3. Each option names the owning downstream skill or workflow.
-4. Use concise action names that scan cleanly in terminal-based AI tools.
-5. In the same turn, if an Ask User tool is available, invoke it using `references/ask-user-harness.md` so the user can pick without typing a token.
 
 ```markdown
 CHOOSEABLE_OPTIONS
@@ -85,6 +81,10 @@ CHOOSEABLE_OPTIONS
 - `DECIDE_OPEN_QUESTIONS`: Resolve remaining blockers → decisions
 - `EXPLAIN_FINDINGS_VISUALLY`: Thorough HTML explanation → explain
 ```
+
+3. Each option names the owning downstream skill or workflow.
+4. Use concise action names that scan cleanly in terminal-based AI tools.
+5. In the same turn, if an Ask User tool is available, invoke it using `references/ask-user-harness.md` so the user can pick without typing a token.
 
 ## Options Quality Checklist
 
@@ -136,6 +136,7 @@ Before presenting, verify:
 | **Routes vs Matrix** | Routes from routing matrix, not improvised | Use matrix |
 | **Options vs Skills** | Each option names owning skill | Add skill name |
 | **Handoff vs Scenario** | Downstream receives normalized scenario | Prepare handoff |
+| **Picker vs Tokens** | Native picker options match the printed token list (same tokens, recommended first) | Rebuild both from one option set |
 
 ### Red Flags (Never Present)
 
