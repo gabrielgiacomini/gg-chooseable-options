@@ -1,5 +1,5 @@
 # chooseable-options
-A lightweight next-step router that normalizes the current conversation state, consults a reviewed routing matrix, and presents a compact menu of 3-7 chooseable options — one recommended first. It does not execute the chosen route itself; it explicitly hands off to the owning downstream skill with a normalized scenario summary.
+A lightweight next-step router that normalizes the current conversation state, consults a reviewed routing matrix, and presents a compact menu of 3-7 chooseable options — one recommended first. It always prints SCREAMING_SNAKE_CASE tokens, and when the harness has an Ask User tool it also opens that native picker. It does not execute the chosen route itself; it explicitly hands off to the owning downstream skill with a normalized scenario summary.
 
 ## Install
 
@@ -48,6 +48,7 @@ Restart your agent or reload skills after installation. See the parent [`skills`
 | Project skill index | Generated index published by the project-local skill manager — used for inventory awareness (Layer 1) |
 | `references/context-normalization.md` | Scenario detection order, route-selection rules, tie-break logic, escalation thresholds |
 | `references/routing-matrix.md` | Reviewed routing lanes, recommended first routes, secondary routes, do-not-route rules, expert capability bridges |
+| `references/ask-user-harness.md` | How to detect and call the current harness's Ask User tool |
 | Shortlisted `SKILL.md` files | Opened on demand (Layer 2) for the 1-4 candidate skills that survived the inventory shortlist — frontmatter `description`, `AUTO_TRIGGER_WHEN`, `AUTO_SUGGEST_WHEN`, `Cross-Skill Coordination`, `HANDOFF_OUTPUTS`, and closeout sections only |
 | Source artifact (if present) | Path, recommendation summary, and `Post-Study Proposals` when the source is a completed study |
 
@@ -61,14 +62,18 @@ The skill produces only conversational output — no files are written.
 |---------|---------|
 | `Current scenario` | Normalized scenario key (e.g. `EXECUTION_ARTIFACT_READY`) plus a one-sentence description |
 | `Why these are the next logical steps` | Short paragraph explaining why the recommended option is ranked first |
-| `CHOOSEABLE_OPTIONS` | Flat bulleted list, recommended option first, each naming the owning downstream skill or workflow. 3-7 options maximum on the first pass. |
+| `CHOOSEABLE_OPTIONS` | Flat bulleted SCREAMING_SNAKE_CASE list, recommended option first, each naming the owning downstream skill. 3-7 options on the first pass. |
+| Native Ask User picker | Same options, invoked in the same turn when `AskUserQuestion`, `ask_user_question`, `AskQuestion`, or equivalent is in this turn's tool list. See `references/ask-user-harness.md`. |
 | `What happens after selection` | Explicit description of the handoff consequence so the user knows what will happen when they choose |
 
 Option token family names vary by scenario: `CHOOSEABLE_OPTIONS`, `IMPLEMENTATION_OPTIONS`, `CONTROL_OPTIONS`, `GOVERNANCE_OPTIONS`, `SPECIALIST_OPTIONS`, `RESEARCH_OPTIONS`.
 
 ### External commands
 
-None. This skill makes no CLI, MCP, or API calls. All routing logic is inference over read files.
+| Command | When invoked |
+|---------|-------------|
+| Harness Ask User tool (`AskUserQuestion`, `ask_user_question`, `AskQuestion`, …) | Same turn as the printed token list, when that tool is in this turn's tool list |
+| None otherwise | Printed tokens are the complete path when no picker exists |
 
 ### Side effects
 
@@ -105,9 +110,12 @@ flowchart TD
     J --> K[Build compact option set\n3-7 options, recommended first\neach names owning skill]
     K --> L{Routing matrix shows\nREVIEW_REQUIRED?}
     L -->|yes| M[Update routing-matrix.md row\nin this turn]
-    M --> N[Present CHOOSEABLE_OPTIONS\n+ handoff consequence]
+    M --> N[Print CHOOSEABLE_OPTIONS tokens]
     L -->|no| N
-    N --> O([User selects a route])
+    N --> N2{Ask User tool\nin this turn?}
+    N2 -->|yes| N3[Invoke native picker\nask-user-harness.md]
+    N2 -->|no| O
+    N3 --> O([User selects a route])
     O --> P[Explicit handoff to downstream skill\nwith normalized scenario key,\nalternative routes, and missing-evidence notes]
 ```
 
@@ -126,7 +134,8 @@ chooseable-options/
 │   └── icon-small.svg
 └── references/
     ├── context-normalization.md
-    └── routing-matrix.md
+    ├── routing-matrix.md
+    └── ask-user-harness.md           # Native Ask User tool mapping per harness
 ```
 
 ## Quick start
@@ -136,18 +145,20 @@ chooseable-options/
    - `What should I do next?`
    - `Give me chooseable options for where to go from here.`
    - `I finished the study — what are my next steps?`
-3. Review the `CHOOSEABLE_OPTIONS` menu and pick a route.
+3. Review the `CHOOSEABLE_OPTIONS` menu (and the native picker when the harness shows one) and pick a route.
 4. The skill hands off to the downstream owning skill with a normalized scenario summary.
 
 ## Resources
 
 - `references/context-normalization.md` — scenario detection order, evidence inputs, escalation rules, route-selection and tie-break logic, output assembly rules.
 - `references/routing-matrix.md` — reviewed scenario routing lanes, in-batch workflow skill rows, expert capability bridges, pending review queue.
+- `references/ask-user-harness.md` — detect the current harness's Ask User tool and map tokens onto native options.
 - [gg-skills](https://github.com/gg-skills/skills) — parent repo with all skills in the unprefixed skills namespace.
 
 ## Caveats
 
 - **Router only, not executor.** This skill presents options and hands off. It does not run the chosen workflow itself.
+- **Dual surface.** Always print SCREAMING_SNAKE_CASE tokens. Also open the native Ask User picker when that tool exists this turn. Do not invent a picker.
 - **Two-layer model is mandatory.** The skill reads the project skill index first (Layer 1) and opens individual `SKILL.md` files only for shortlisted candidates (Layer 2). Reading the entire skill corpus defeats the lightweight-routing purpose.
 - **3-7 option hard limit on the first pass.** If more options seem relevant, group them by token family (e.g. `IMPLEMENTATION_OPTIONS` vs. `RESEARCH_OPTIONS`) and surface only the top option from each group.
 - **Study closeout proposals take precedence.** When the source is a completed study, its own `Post-Study Proposals` are inspected before general routing matrix logic overrides the recommendation.

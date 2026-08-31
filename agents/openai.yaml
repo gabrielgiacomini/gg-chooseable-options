@@ -6,6 +6,7 @@ interface:
   brand_color: '#22C55E'
   default_prompt: >-
     Use when the user asks what to do next, wants chooseable options, or needs a context-aware menu
-    of next actions. Normalize the scenario, consult the routing matrix and skill indexes, and
-    recommend the best route without replacing deeper workflows. Reference
-    chooseable-options/SKILL.md when cross-referencing this skill.
+    of next actions. Normalize the scenario, consult the routing matrix and skill indexes, print
+    SCREAMING_SNAKE_CASE tokens, and invoke the harness Ask User tool when it is available so the
+    user can pick without typing. Reference chooseable-options/SKILL.md when
+    cross-referencing this skill.

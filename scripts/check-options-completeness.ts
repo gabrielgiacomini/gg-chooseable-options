@@ -69,6 +69,7 @@ const CHECKLIST_ITEMS: Omit<ChecklistItem, "checked">[] = [
   { number: 6, name: "Options scoped", description: "Each option names owning skill/workflow", required: true, weight: 2 },
   { number: 7, name: "Escalation path clear", description: "Routes not covered escalate properly", required: true, weight: 1 },
   { number: 8, name: "Handoff ready", description: "Normalized scenario passed to downstream skill", required: true, weight: 2 },
+  { number: 9, name: "Native picker", description: "Ask User tool invoked when present this turn", required: false, weight: 1 },
 ];
 
 // ============================================================================
@@ -106,6 +107,7 @@ function main() {
       case 4: // Recommended option first
       case 6: // Options scoped
       case 8: // Handoff ready
+      case 9: // Native picker when available
         checked = true; // Assumed for proper workflow
         break;
       case 5: // Menu compact

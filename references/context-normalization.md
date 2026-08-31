@@ -90,8 +90,11 @@ Escalate instead of continuing lightweight routing when:
 
 1. State the normalized `Current scenario` first.
 2. Explain in one short paragraph why the recommended option is first.
-3. Present `CHOOSEABLE_OPTIONS` with the recommended option first.
+3. Present `CHOOSEABLE_OPTIONS` with the recommended option first as SCREAMING_SNAKE_CASE
+   tokens with descriptions.
 4. Keep the first pass to 3-7 options.
 5. Name the downstream owning skill or workflow in every option.
-6. End with `What happens after selection` so the user knows the consequence of choosing the
+6. In the same turn, invoke the harness Ask User tool when it is available. Mapping is in
+   `ask-user-harness.md`.
+7. End with `What happens after selection` so the user knows the consequence of choosing the
    recommended route.

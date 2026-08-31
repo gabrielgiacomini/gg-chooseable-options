@@ -10,9 +10,10 @@ description: when configuring user choices across plans, studies, workflows. Rou
 
 ## Overview
 
-Use this skill to answer "what are the next logical steps here?" with a compact, terminal-friendly
-option menu. It is the lightweight router for next-step selection across workflow, quality,
-governance, and specialist-skill lanes.
+Use this skill to answer "what are the next logical steps here?" with a compact option menu.
+Print SCREAMING_SNAKE_CASE tokens in chat, and when the harness exposes an Ask User tool, also
+open that native picker so the user can choose without typing a token. It is the lightweight
+router for next-step selection across workflow, quality, governance, and specialist-skill lanes.
 
 This skill is not a replacement for planning, decisions, study, or step-by-step execution. Its job
 is to normalize the current situation, recommend the best next route, and make the available
@@ -41,6 +42,8 @@ alternatives easy to scan before the user commits to a lane.
 | 4 | More options makes the menu more helpful. | The first-pass menu must stay compact: 3-7 options maximum. | Compact first pass |
 | 5 | The skill embeds the full downstream workflow after the user chooses. | It hands off explicitly, passing the normalized scenario and downstream target. | Explicit handoff |
 | 6 | Any routing matrix entry can be used | Use reviewed routes only; escalate if matrix is unclear | Matrix fidelity |
+| 7 | Printing tokens is enough when an Ask User tool exists. | Print the token list **and** invoke the native picker in the same turn. | Dual surface |
+| 8 | Invent an Ask User tool when the harness has none. | If no matching tool is in this turn's list, the printed list is complete. | Availability, not invention |
 
 ## Non-Negotiable Policy
 
@@ -50,12 +53,13 @@ alternatives easy to scan before the user commits to a lane.
 4. Treat `references/routing-matrix.md` as the reviewed routing layer. Do not improvise routes from memory.
 5. Present exactly one recommended option first. Keep the first-pass menu to 3-7 options.
 6. Every option must name the downstream owning skill or workflow.
-7. Escalate instead of overloading this skill:
+7. Always print `CHOOSEABLE_OPTIONS` as SCREAMING_SNAKE_CASE tokens with descriptions. When an Ask User tool is in this turn's tool list, also invoke it in the same turn (see `references/ask-user-harness.md`). Do not require the user to type a token when a picker is available.
+8. Escalate instead of overloading this skill:
    - blocker-rich choice space -> `decisions/SKILL.md`
    - ordered human-in-the-loop queue -> `step-by-step/SKILL.md`
    - ready implementation scope -> `plan/SKILL.md`
    - insufficient evidence -> `study/SKILL.md` or `research-online/SKILL.md`
-8. If the routing matrix shows `REVIEW_REQUIRED` for a changed skill surface, update the matrix before closure whenever it is safe to do so.
+9. If the routing matrix shows `REVIEW_REQUIRED` for a changed skill surface, update the matrix before closure whenever it is safe to do so.
 
 ## Output Contract
 
@@ -63,15 +67,24 @@ Default user-facing output:
 
 1. `Current scenario`
 2. `Why these are the next logical steps`
-3. `CHOOSEABLE_OPTIONS`
+3. `CHOOSEABLE_OPTIONS` (printed tokens **and** native picker when available)
 4. `What happens after selection`
 
 `CHOOSEABLE_OPTIONS` rules:
 
 1. Recommended option first.
-2. Flat bullets only.
+2. Flat bullets in chat, always:
+   `- \`ACTION_NAME_IN_SCREAMING_SNAKE_CASE\` (Recommended): Description → owning skill`
 3. Each option names the owning downstream skill or workflow.
 4. Use concise action names that scan cleanly in terminal-based AI tools.
+5. In the same turn, if an Ask User tool is available, invoke it using `references/ask-user-harness.md` so the user can pick without typing a token.
+
+```markdown
+CHOOSEABLE_OPTIONS
+- `WRITE_IMPLEMENTATION_PLAN` (Recommended): Create an execution plan from this study → plan
+- `DECIDE_OPEN_QUESTIONS`: Resolve remaining blockers → decisions
+- `EXPLAIN_FINDINGS_VISUALLY`: Thorough HTML explanation → explain
+```
 
 ## Options Quality Checklist
 
@@ -87,14 +100,15 @@ Use this checklist before presenting any option menu.
 | 6 | **Options scoped** — Each option names owning skill/workflow | Enables clarity | Draft |
 | 7 | **Escalation path clear** — Routes not covered escalate properly | Prevents improvisation | Draft |
 | 8 | **Handoff ready** — Normalized scenario passed to downstream skill | Enables continuity | Closeout |
+| 9 | **Native picker** — Ask User tool invoked when present this turn | Lets the user choose without typing tokens | Closeout |
 
 ### Quality Tiers
 
 | Tier | Criteria | Use When |
 |------|----------|----------|
 | **Minimal** | Items 1-4, 8 | Simple routing decision |
-| **Standard** | Items 1-6, 8 | Multi-option routing |
-| **Full** | All 8 items | Complex governance scenarios |
+| **Standard** | Items 1-6, 8-9 | Multi-option routing |
+| **Full** | All 9 items | Complex governance scenarios |
 
 ### Pre-Presentation Verification
 
@@ -107,6 +121,7 @@ Use this checklist before presenting any option menu.
 □ Each option names owning skill
 □ Escalation paths clear for uncovered scenarios
 □ Handoff ready with normalized scenario
+□ Native Ask User tool invoked if it is in this turn's tool list
 ```
 
 ## Options Consistency Validator
@@ -129,6 +144,7 @@ Before presenting, verify:
 - [ ] Recommended option not first
 - [ ] Improvised routes not in matrix
 - [ ] Scenario not normalized before routing
+- [ ] Ask User tool present this turn but only a text list was shown
 
 ## Workflow
 
@@ -142,13 +158,14 @@ Before presenting, verify:
 | Governance | Project-local skill manager `SKILL.md` | Specialist execution skills |
 | Specialist | Target specialist `SKILL.md`, `AUTO_TRIGGER_WHEN`, `Cross-Skill Coordination` | Broad workflow skills unless sequencing is needed |
 | Open-ended / router | `references/routing-matrix.md`, frontmatter `description`, `AUTO_SUGGEST_WHEN` | Full corpus reads |
+| Presenting the menu | `references/ask-user-harness.md` | Unrelated workflow skills |
 
 Load only the subset the task needs.
 
 4. Use `references/routing-matrix.md` to choose the recommended first route, secondary routes, and skills that should not be suggested in the current scenario.
 5. Build the compact option set.
-6. Hand off explicitly if the best route is a deeper workflow.
-7. Pass along the normalized scenario summary and downstream skill target after the user chooses.
+6. Print the token list. If an Ask User tool is in this turn's tool list, invoke it in the same turn (`references/ask-user-harness.md`).
+7. Hand off explicitly after the user chooses (picker answer or typed token). Pass the normalized scenario summary and downstream skill target.
 
 ## Cross-Skill Coordination
 
@@ -216,6 +233,7 @@ Load only the subset the task needs.
 3. **Presenting implementation before resolving blockers.** The route-selection rules state: prefer blocker resolution before implementation. See `references/context-normalization.md`.
 4. **Forcing planning when evidence is thin.** If the concrete change inventory, regression scope, or doc blast radius is still underexplored, keep a bounded study-deepening option visible.
 5. **Omitting the explanation lane for ready studies.** When a completed study has a chosen direction and concrete implementation-ready inventory, keep `explain/SKILL.md` visible as the "what can already be implemented now?" bridge.
+6. **Skipping the native picker when an Ask User tool is available.** Print tokens and call the picker in the same turn. See `references/ask-user-harness.md`.
 
 ## Troubleshooting
 
@@ -225,13 +243,16 @@ Load only the subset the task needs.
 | Routing matrix shows `REVIEW_REQUIRED` for a skill used this turn | A skill changed routing semantics without matrix update | Update the relevant row in `references/routing-matrix.md` before closing the turn |
 | Recommended route contradicts the artifact's own closeout menu | The artifact's closeout was written before a skill change | Honor the artifact's closeout unless new evidence clearly contradicts it; note the discrepancy |
 | User rejects all options and asks for more | Scenario was under-normalized or evidence is too thin | Re-run normalization with `references/context-normalization.md` or escalate to `study/SKILL.md` |
+| User has to type a token even though a picker exists | Native Ask User tool was not invoked | Call the matching tool from `references/ask-user-harness.md` in the same turn as the printed list |
+| Picker failed or tool missing | Harness has no Ask User tool this turn | Keep the printed SCREAMING_SNAKE_CASE list; do not invent a tool |
 
 ## Local Corpus Layout
 
-`references/` contains 2 flat files (no subfolders):
+`references/` contains 3 flat files (no subfolders):
 
 - `context-normalization.md` - scenario-detection order, evidence inputs, escalation rules, ranking and tie-break logic.
 - `routing-matrix.md` - reviewed routing lanes, in-batch workflow coverage, expert capability bridges, pending review queue.
+- `ask-user-harness.md` - detect and call the current harness's Ask User tool; map tokens onto native options.
 
 ## Guidance Alignment
 
